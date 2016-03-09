@@ -22,6 +22,9 @@ namespace TrueClarity.SessionProvider.Redis
             _includeLogging = includeLogging;
         }
 
+        /// <summary>
+        /// Workaround for the fact Redis will purge expired keys from its store.
+        /// </summary>
         public int TimeoutSkew(int timeout)
         {
             return timeout * 10;

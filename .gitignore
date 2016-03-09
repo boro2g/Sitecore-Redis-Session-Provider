@@ -180,3 +180,5 @@ $RECYCLE.BIN/
 # Visual Studio 2014 CTP
 **/*.sln.ide
 *.dll
+*.dll
+obj/Debug/TrueClarity.SessionProvider.Redis.dll
