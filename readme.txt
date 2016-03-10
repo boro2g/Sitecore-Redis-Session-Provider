@@ -1,7 +1,9 @@
 ﻿<!--web.config-->
 <sessionState customProvider="redis" mode="Custom" cookieless="false" timeout="1" sessionIDManagerType="Sitecore.SessionManagement.ConditionalSessionIdManager">
   <providers>
-    <add name="redis" type="TrueClarity.SessionProvider.Redis.SitecoreRedisSessionProvider, TrueClarity.SessionProvider.Redis" sessionType="private" host="localhost" logging="false" timeout="1" port="6379" accessKey="" ssl="false" pollingInterval="2" compression="true" />
+    <add name="redis" type="TrueClarity.SessionProvider.Redis.RedisSessionStateProvider, TrueClarity.SessionProvider.Redis" sessionType="private" host="localhost" logging="false" timeout="1" port="6379" accessKey="" ssl="false" pollingInterval="2" compression="true"
+	detailedDiagnostics="false"
+	/>
   </providers>
 </sessionState>
 
@@ -17,10 +19,11 @@
           <clear/>
           <add
             name="redisShared"
-            type="TrueClarity.SessionProvider.Redis.SitecoreRedisSessionProvider, TrueClarity.SessionProvider.Redis"
+            type="TrueClarity.SessionProvider.Redis.RedisSessionStateProvider, TrueClarity.SessionProvider.Redis"
             host="localhost"
             port="6379"
             logging="false"
+
             accessKey=""
             ssl="false"
             timeout="1"

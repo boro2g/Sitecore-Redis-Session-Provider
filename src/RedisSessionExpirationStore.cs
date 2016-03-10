@@ -13,13 +13,17 @@ namespace TrueClarity.SessionProvider.Redis
         private readonly RedisDatabase _redisDatabase;
         private readonly int _timeoutMinutes;
         private readonly bool _includeLogging;
+        private readonly string _sessionType;
         private const string AllKeysLog = "_log";
 
-        public RedisSessionExpirationStore(IDatabase database, int timeoutMinutes, bool includeLogging)
+        private const int ConvertMinutesToSeconds = 60;
+
+        public RedisSessionExpirationStore(IDatabase database, int timeoutMinutes, bool includeLogging, string sessionType)
         {
             _redisDatabase = new RedisDatabase(database, new TimeSpan(0, 0, 5));
             _timeoutMinutes = timeoutMinutes;
             _includeLogging = includeLogging;
+            _sessionType = sessionType;
         }
 
         /// <summary>
@@ -47,6 +51,7 @@ namespace TrueClarity.SessionProvider.Redis
         ///We dont need to raise for entries which have a guid key, just entries with a session id
         private bool IsValidId(string id)
         {
+            //return true;
             return id.Length < 30;
         }
 
@@ -82,7 +87,7 @@ namespace TrueClarity.SessionProvider.Redis
 
         private DateTime NowWithTimeout()
         {
-            return DateTime.UtcNow.AddMinutes(_timeoutMinutes);
+            return DateTime.UtcNow.AddSeconds(_timeoutMinutes * ConvertMinutesToSeconds);
         }
 
         public string FindExpiredItemId(DateTime signalTime, SessionStateLockCookie lockCookie, out string itemMarker)
@@ -122,7 +127,14 @@ namespace TrueClarity.SessionProvider.Redis
                 return null;
             }
            
-            var item = _redisDatabase.HashGetAll(Key(id).DataKey.Replace(" ","").Replace("{","{/"));
+            string key = Key(id).DataKey;
+
+            if (String.IsNullOrEmpty(_sessionType))
+            {
+                key = key.Replace(" ", "").Replace("{", "{/");
+            }
+
+            var item = _redisDatabase.HashGetAll(key);
             
             CleanupMarkerEntries(itemMarker);
 
@@ -155,9 +167,9 @@ namespace TrueClarity.SessionProvider.Redis
             }
         }
 
-        private static KeyGenerator Key(string id)
+        private KeyGenerator Key(string id)
         {
-            return new KeyGenerator(id, "");
+            return new KeyGenerator(id, _sessionType);
         }
     }
 }

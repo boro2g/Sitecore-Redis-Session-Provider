@@ -60,6 +60,10 @@ namespace RedisDemo
 
                 List<string> notLongToLive = new List<string>();
 
+                int keyCount = server.Keys().Count();
+
+                Console.WriteLine($"Total keys: {keyCount}\n");
+
                 //foreach (var key in server.Keys(pattern: $"Expire {DateTime.Now.ToString("yyyy-MM-dd HH:mm")}*"))
                 foreach (var key in server.Keys().Select(a => a.ToString()))
                 {

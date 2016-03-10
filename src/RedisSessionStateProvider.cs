@@ -2,17 +2,17 @@
 using System.Collections.Specialized;
 using System.Web;
 using System.Web.SessionState;
-using Microsoft.Web.Redis;
-using Sitecore.Diagnostics;
 using Sitecore.SessionProvider;
 using Sitecore.SessionProvider.Helpers;
 using StackExchange.Redis;
+using TrueClarity.SessionProvider.Redis.Diagnostics;
 
 namespace TrueClarity.SessionProvider.Redis
 {
-    public class SitecoreRedisSessionProvider : SitecoreSessionStateStoreProvider
+    public class RedisSessionStateProvider : SitecoreSessionStateStoreProvider
     {
-        private readonly RedisSessionStateProvider _redisProvider;
+        private readonly Microsoft.Web.Redis.RedisSessionStateProvider _redisProvider;
+        private ISessionDiagnostics _sessionDiagnostics;
         private ISessionExpirationStore _sessionExpirationStore;
         private SessionStateItemExpireCallback _expireCallback;
         public string SessionType { get; set; }
@@ -20,9 +20,9 @@ namespace TrueClarity.SessionProvider.Redis
         public bool IncludeLogging { get; set; }
         public int Timeout { get; set; }
 
-        public SitecoreRedisSessionProvider()
+        public RedisSessionStateProvider()
         {
-            _redisProvider = new RedisSessionStateProvider();
+            _redisProvider = new Microsoft.Web.Redis.RedisSessionStateProvider();
         }
 
         public override void Initialize(string name, NameValueCollection config)
@@ -37,9 +37,20 @@ namespace TrueClarity.SessionProvider.Redis
 
             IncludeLogging = configReader.GetBool("logging", false);
 
+            if (configReader.GetBool("detailedDiagnostics", false))
+            {
+                _sessionDiagnostics = new DetailedSessionDiagnostics(IncludeLogging);
+            }
+            else
+            {
+                _sessionDiagnostics = new BasicSessionDiagnostics(IncludeLogging);
+            }
+
+            //config["applicationName"] = SessionType;
+
             ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect(configReader.GetString("host", false));
 
-            _sessionExpirationStore = new RedisSessionExpirationStore(connectionMultiplexer.GetDatabase(), Timeout, IncludeLogging);
+            _sessionExpirationStore = new RedisSessionExpirationStore(connectionMultiplexer.GetDatabase(), Timeout, IncludeLogging, "");
 
             _redisProvider.Initialize(name, config);
 
@@ -55,17 +66,16 @@ namespace TrueClarity.SessionProvider.Redis
 
         private void OnItemExpired(string id, SessionStateStoreData item)
         {
-            if (IncludeLogging)
-            {
-                Log.Info($"OnItemExpired - {id}", this);
-            }
+            _sessionDiagnostics.OnItemExpired(id, item);
 
-            _expireCallback.Invoke(id, item);
+            _expireCallback(id, item);
         }
 
         public override void EndRequest(HttpContext context)
         {
             _redisProvider.EndRequest(context);
+
+            _sessionDiagnostics.EndRequest(context);
 
             base.EndRequest(context);
         }
@@ -90,6 +100,8 @@ namespace TrueClarity.SessionProvider.Redis
 
             if (!String.IsNullOrWhiteSpace(id))
             {
+                _sessionDiagnostics.IdToExpireFound(signalTime, lockCookie, id);
+
                 return _sessionExpirationStore.GetItem(id, itemMarker);
             }
 
@@ -134,7 +146,14 @@ namespace TrueClarity.SessionProvider.Redis
 
         public override void RemoveItem(HttpContext context, string id, object lockId, SessionStateStoreData item)
         {
-            _redisProvider.RemoveItem(context, id, lockId, item);
+            try
+            {
+                ExecuteSessionEnd(id, item);
+            }
+            finally
+            {
+                _redisProvider.RemoveItem(context, id, lockId, item);
+            }
         }
 
         public override void ResetItemTimeout(HttpContext context, string id)

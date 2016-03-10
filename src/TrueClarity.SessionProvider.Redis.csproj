@@ -33,6 +33,16 @@
     <Reference Include="Microsoft.Web.RedisSessionStateProvider">
       <HintPath>..\..\packages\Microsoft.Web.RedisSessionStateProvider.2.1.0\lib\net40\Microsoft.Web.RedisSessionStateProvider.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Library\Sitecore75\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Sitecore.Analytics">
+      <HintPath>..\..\..\Library\Sitecore75\Sitecore.Analytics.dll</HintPath>
+    </Reference>
+    <Reference Include="Sitecore.Analytics.DataAccess">
+      <HintPath>..\..\..\Library\Sitecore75\Sitecore.Analytics.DataAccess.dll</HintPath>
+    </Reference>
     <Reference Include="Sitecore.Kernel">
       <HintPath>..\..\Library\Sitecore75\Sitecore.Kernel.dll</HintPath>
     </Reference>
@@ -55,13 +65,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChangeTrackingSessionStateItemCollection.cs" />
+    <Compile Include="Diagnostics\BasicSessionDiagnostics.cs" />
+    <Compile Include="Diagnostics\DetailedSessionDiagnostics.cs" />
+    <Compile Include="Diagnostics\ISessionDiagnostics.cs" />
+    <Compile Include="Diagnostics\SessionDiagnosticsBase.cs" />
     <Compile Include="ISessionExpirationStore.cs" />
     <Compile Include="KeyGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RedisDatabase.cs" />
     <Compile Include="RedisNull.cs" />
     <Compile Include="RedisSessionExpirationStore.cs" />
-    <Compile Include="SitecoreRedisSessionProvider.cs" />
+    <Compile Include="RedisSessionStateProvider.cs" />
     <Compile Include="SessionStateParser.cs" />
   </ItemGroup>
   <ItemGroup>

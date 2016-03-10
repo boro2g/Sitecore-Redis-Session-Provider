@@ -9,7 +9,7 @@ namespace TrueClarity.SessionProvider.Redis
 {
     internal class KeyGenerator
     {
-        private string id;
+        private string _id;
         public string DataKey { get; private set; }
         public string LockKey { get; private set; }
         public string InternalKey { get; private set; }
@@ -17,7 +17,7 @@ namespace TrueClarity.SessionProvider.Redis
 
         public KeyGenerator(string id, string applicationName)
         {
-            this.id = id;
+            _id = id;
             DataKey = "{" + applicationName + "_" + id + "}_Data";
             LockKey = "{" + applicationName + "_" + id + "}_Write_Lock";
             InternalKey = "{" + applicationName + "_" + id + "}_Internal";
@@ -31,9 +31,9 @@ namespace TrueClarity.SessionProvider.Redis
 
         public void RegenerateKeyStringIfIdModified(string id, string applicationName)
         {
-            if (!id.Equals(this.id))
+            if (!id.Equals(_id))
             {
-                this.id = id;
+                _id = id;
                 DataKey = "{" + applicationName + "_" + id + "}_Data";
                 LockKey = "{" + applicationName + "_" + id + "}_Write_Lock";
                 InternalKey = "{" + applicationName + "_" + id + "}_Internal";
