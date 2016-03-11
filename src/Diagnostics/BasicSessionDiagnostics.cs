@@ -9,7 +9,7 @@ namespace TrueClarity.SessionProvider.Redis.Diagnostics
             
         }
 
-        public override void OnItemExpired(string id, SessionStateStoreData item)
+        public override void OnItemExpired(string id, SessionStateStoreData item, SessionStateItemExpireCallback expireCallback, string sessionType)
         {
             Dump($"OnItemExpired - {id}");
         }

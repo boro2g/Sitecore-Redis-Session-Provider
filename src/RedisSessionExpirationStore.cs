@@ -36,23 +36,13 @@ namespace TrueClarity.SessionProvider.Redis
 
         public void EntryAccessed(string id)
         {
-            if (IsValidId(id))
-            {
-                var now = NowWithTimeout();
+            var now = NowWithTimeout();
 
-                var timeoutKey = Key(id).TimeoutKey;
+            var timeoutKey = Key(id).TimeoutKey;
 
-                ResetExistingEntry(id, timeoutKey);
+            ResetExistingEntry(id, timeoutKey);
 
-                AddOrUpdateEntry(id, now, timeoutKey);
-            }
-        }
-
-        ///We dont need to raise for entries which have a guid key, just entries with a session id
-        private bool IsValidId(string id)
-        {
-            //return true;
-            return id.Length < 30;
+            AddOrUpdateEntry(id, now, timeoutKey);
         }
 
         private void ResetExistingEntry(string id, string timeoutKey)

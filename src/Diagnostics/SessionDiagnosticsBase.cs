@@ -23,7 +23,7 @@ namespace TrueClarity.SessionProvider.Redis.Diagnostics
             }
         }
 
-        public virtual void OnItemExpired(string id, SessionStateStoreData item)
+        public virtual void OnItemExpired(string id, SessionStateStoreData item, SessionStateItemExpireCallback expireCallback, string sessionType)
         {
         }
 
@@ -33,6 +33,15 @@ namespace TrueClarity.SessionProvider.Redis.Diagnostics
 
         public virtual void EndRequest(HttpContext context)
         {
+        }
+
+        public virtual void SetItemExpireCallback(bool result, SessionStateItemExpireCallback expireCallback, string sessionType)
+        {
+        }
+
+        public void Error(string message)
+        {
+            Log.Error(message, this);
         }
     }
 }

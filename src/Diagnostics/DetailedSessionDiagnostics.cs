@@ -16,9 +16,13 @@ namespace TrueClarity.SessionProvider.Redis.Diagnostics
     {
         private readonly ThreadLocal<HttpContext> _stubHttpContext = new ThreadLocal<HttpContext>();
 
-        public override void OnItemExpired(string id, SessionStateStoreData item)
+        public override void OnItemExpired(string id, SessionStateStoreData item, SessionStateItemExpireCallback expireCallback, string sessionType)
         {
-            Dump($"OnItemExpired - {id}");
+            if (expireCallback != null)
+            {
+                Dump($"Callback: {expireCallback.Method} - {expireCallback.Target}");
+            }
+            Dump($"OnItemExpired - {id} - {sessionType}");
             Dump($" {SessionContent(item)}");
             Dump($" Contact lock ids: {LockIds()}");
         }
@@ -28,9 +32,10 @@ namespace TrueClarity.SessionProvider.Redis.Diagnostics
             Dump($"SignalTime: {signalTime}, lockCookie: {JsonConvert.SerializeObject(lockCookie)}, id: {id}");
         }
 
-        public override void EndRequest(HttpContext context)
+        public override void SetItemExpireCallback(bool result, SessionStateItemExpireCallback expireCallback, string sessionType)
         {
-            
+            Dump($"SetItemExpireCallback - {result} - {sessionType}");
+            Dump($" - SetItemExpireCallback: {expireCallback.Method} - {expireCallback.Target}");
         }
 
         private string SessionContent(SessionStateStoreData sessionData)
@@ -41,6 +46,8 @@ namespace TrueClarity.SessionProvider.Redis.Diagnostics
             {
                 var sessionDataEntry = sessionData.Items[item.ToString()];
 
+                builder.AppendLine($" - Session items: {item} - {sessionDataEntry}");
+
                 StandardSession standardSession = sessionDataEntry as StandardSession;
 
                 if (standardSession != null)
@@ -48,8 +55,6 @@ namespace TrueClarity.SessionProvider.Redis.Diagnostics
                     builder.AppendLine($"  - Settings: {JsonConvert.SerializeObject(standardSession.Settings)}");
                     builder.AppendLine($"  - Interaction: Pagecount={standardSession.Interaction.PageCount}");
                 }
-                 
-                builder.AppendLine($" - Session items: {item} - {sessionDataEntry}");
             }
 
             return builder.ToString();
@@ -91,7 +96,7 @@ namespace TrueClarity.SessionProvider.Redis.Diagnostics
             {
                 foreach (var key in lockIds.Keys)
                 {
-                    builder.Append($"{key} - {lockIds[key]}");
+                    builder.AppendLine($"  - {key} - {lockIds[key]}");
                 }
             }
 

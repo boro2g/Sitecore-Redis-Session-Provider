@@ -64,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CallbackStore.cs" />
     <Compile Include="ChangeTrackingSessionStateItemCollection.cs" />
     <Compile Include="Diagnostics\BasicSessionDiagnostics.cs" />
     <Compile Include="Diagnostics\DetailedSessionDiagnostics.cs" />

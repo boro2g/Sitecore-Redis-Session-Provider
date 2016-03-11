@@ -14,7 +14,7 @@ namespace TrueClarity.SessionProvider.Redis
         private readonly Microsoft.Web.Redis.RedisSessionStateProvider _redisProvider;
         private ISessionDiagnostics _sessionDiagnostics;
         private ISessionExpirationStore _sessionExpirationStore;
-        private SessionStateItemExpireCallback _expireCallback;
+        private readonly CallbackStore _callbackStore;
         public string SessionType { get; set; }
         public string ProviderName { get; set; }
         public bool IncludeLogging { get; set; }
@@ -23,6 +23,7 @@ namespace TrueClarity.SessionProvider.Redis
         public RedisSessionStateProvider()
         {
             _redisProvider = new Microsoft.Web.Redis.RedisSessionStateProvider();
+            _callbackStore = new CallbackStore();
         }
 
         public override void Initialize(string name, NameValueCollection config)
@@ -59,16 +60,22 @@ namespace TrueClarity.SessionProvider.Redis
 
         public override bool SetItemExpireCallback(SessionStateItemExpireCallback expireCallback)
         {
-            _expireCallback = expireCallback;
+            _callbackStore.SetCallback(expireCallback, SessionType);
+            
+            bool result = base.SetItemExpireCallback(CustomCallback);
 
-            return base.SetItemExpireCallback(OnItemExpired);
+            _sessionDiagnostics.SetItemExpireCallback(result, expireCallback, SessionType);
+
+            return result;
         }
 
-        private void OnItemExpired(string id, SessionStateStoreData item)
+        private void CustomCallback(string id, SessionStateStoreData item)
         {
-            _sessionDiagnostics.OnItemExpired(id, item);
+            SessionStateItemExpireCallback callback = _callbackStore.Callback(id);
 
-            _expireCallback(id, item);
+            _sessionDiagnostics.OnItemExpired(id, item, callback, SessionType);
+
+            callback.Invoke(id, item);
         }
 
         public override void EndRequest(HttpContext context)
