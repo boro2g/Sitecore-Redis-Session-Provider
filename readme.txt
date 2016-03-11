@@ -23,7 +23,7 @@
             host="localhost"
             port="6379"
             logging="false"
-
+            detailedDiagnostics="false"
             accessKey=""
             ssl="false"
             timeout="1"
